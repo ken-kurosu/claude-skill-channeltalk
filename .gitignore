@@ -1,0 +1,6 @@
+backups/*.json
+!backups/.gitkeep
+node_modules/
+.env
+*.log
+.DS_Store
