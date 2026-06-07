@@ -74,7 +74,14 @@ mutation 失敗 / 結果が想定外 → ユーザーに backup-id と `node scr
 |---|---|
 | 「workflow 一覧」 | `list-workflows.js` |
 | 「workflow NNNN を起動/停止」 | `toggle-workflow.js <wfId> activate\|stop` |
+| **「ALF を全員に展開」「営業時間外も ALF オン」** | `toggle-alf-workflow.js on` (filter を catch-all に) |
+| **「ALF を黒須さん限定に」「ALF オフ」「営業時間外も ALF 止めて」** | `toggle-alf-workflow.js off` (filter を黒須さん memberId のみに、一般ユーザーは旧版 15229 へ) |
 | 「営業時間外のみ稼働に切替」 | `update-workflow-trigger.js <wfId> notInOperation` (今後実装) |
+
+**ALF版 (wf 832569) の運用**:
+- runMode = `notInOperation` (営業時間外のみ稼働) は常に維持
+- ON/OFF は **filter で制御**: catch-all (全員) ⇄ 黒須さん memberId 限定
+- ON/OFF 切替時はバックアップ自動取得 (Aika 側 `/tmp/wf_832569_pre_*.json`)
 
 ### 4. バックアップ / 復元
 
