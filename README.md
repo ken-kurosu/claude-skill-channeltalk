@@ -9,7 +9,7 @@
 
 ```bash
 cd ~
-git clone git@github.com:aikasa/claude-skill-channeltalk.git
+git clone https://github.com/ken-kurosu/claude-skill-channeltalk.git
 mkdir -p ~/.claude/skills
 ln -s ~/claude-skill-channeltalk ~/.claude/skills/channeltalk-admin
 ```

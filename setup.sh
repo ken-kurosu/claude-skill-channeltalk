@@ -6,7 +6,7 @@
 
 set -euo pipefail
 
-REPO_URL="git@github.com:ken-kurosu/claude-skill-channeltalk.git"
+REPO_URL="https://github.com/ken-kurosu/claude-skill-channeltalk.git"
 INSTALL_DIR="${HOME}/claude-skill-channeltalk"
 SKILL_LINK="${HOME}/.claude/skills/channeltalk-admin"
 AIKA_HOST_IP="100.84.67.39"
