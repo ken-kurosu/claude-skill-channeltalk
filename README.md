@@ -100,9 +100,24 @@ node scripts/restore.js <filename>                   # 復元実行
 | 症状 | 対処 |
 |---|---|
 | `ssh aika` 接続不可 | ssh key の登録を黒須さんに依頼 |
-| `no session` エラー | Aika 側の `storage_state.json` の expire 切れ → 黒須さんに再ログイン依頼 |
+| `認証情報が変更されたためログアウトしました` / `x-account-refresh expired` | desk セッション失効 → 黒須さんに再ログイン依頼 (`bash ~/aikasa-channeltalk-impl/automation/relogin.sh` を素のターミナルで実行) |
+| `no session` エラー | **2026-08-16 に修正済みの旧バグ。** まだ出るなら `node scripts/update.js` で最新化する |
 | API call 403 / 422 | 内部 endpoint が変わった可能性 → docs/ENDPOINTS.md と GitHub Issue で連絡 |
 | 復元したいが backup-id がわからない | `node scripts/restore.js` で一覧表示 |
+
+### desk セッションが繰り返し切れていた原因 (2026-08-16 解決)
+
+`lib/aika.js` の `deskApiCall` が呼び出しごとに Playwright ブラウザを起動し、
+**ローテーション後の cookie を `storage_state.json` に書き戻さずに閉じていた**。
+そのため 2 回目の呼び出しが失効済みの `x-account-refresh` を再提示し、
+ChannelTalk のリフレッシュトークン再利用検知が発火して **desk セッション全体が無効化** されていた。
+
+`backup-all-workflows.js` は workflow を 3 件ループするので、**実行するたびに 2 件目で自壊**していた。
+現在は `lib/desk_api.js` の `ensureFreshJwt()` 経由に変更済みで、
+再発行した cookie は `storage_state.json` へ原子的に書き戻される。
+
+セッションの生存確認は cookie の残り時間では判定できない (残 7 日でも死んでいた事例あり)。
+必ず実 API コール (`node scripts/list-workflows.js` など) で確認すること。
 
 ## 連絡
 
