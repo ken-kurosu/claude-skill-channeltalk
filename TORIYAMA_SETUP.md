@@ -58,6 +58,30 @@ ssh kurosu@100.84.67.39 'cd ~/aikasa-channeltalk-impl/automation && bash simrun.
 - 認証情報（ANTHROPIC_API_KEY / storage_state / CTキー）は Aika 上にあり、値をログ・画面に出さない。
 - desk-api 系の操作は Aika に集約（ローカルから直接叩かない＝storage_state 二重 refresh による全ログアウトを防ぐ）。
 
+### 🚨🚨 最重要：storage_state.json を書き換える操作は絶対にしない
+2026-08-17 に、この事故で **desk セッションが全損** した。同じことを繰り返さないこと。
+
+- **`context.storageState({ path: ... })` を書く Playwright スクリプトを自作・実行しない。**
+  Playwright は**未認証のコンテキストでも黙って保存に成功する**。ログイン画面に居るまま保存すると、
+  `storage_state.json` の `x-account` / `x-account-refresh` が解析用 cookie で上書きされ、
+  正規のセッションが消滅する。復旧には黒須さんの手動再ログインが必要になる。
+- `storage_state.json` を **コピー・移動・上書き・削除しない**（バックアップのつもりでもやらない）。
+- desk-api を叩きたい時は、**必ず** `lib/desk_api.js` の `request()` を使う。
+  ここには `ensureFreshJwt()`（自動 refresh → atomic write 書き戻し）が入っており、
+  ブラウザを起動せずに安全に叩ける。Playwright でヘッダーを盗む必要は無い。
+
+  ```
+  ssh kurosu@100.84.67.39 'export PATH=/usr/local/bin:$PATH; cd ~/aikasa-channeltalk-impl/automation && node -e "
+    const api=require(\"./lib/desk_api\");
+    api.request(\"GET\",\"/desk/channels/32867/chat-tags?limit=1000\").then(r=>console.log(r.status));
+  "'
+  ```
+
+- **ブラウザ画面に「ログインしてください」が出た＝セッション失効、とは限らない。**
+  旧ドメイン `desk.channel.io` は `channel.works` の**ルート**へ 307 リダイレクトされ、
+  ディープリンクが失われてログイン画面に見える。まず上の `desk_api` 経由の疎通で判定すること。
+  管理画面の URL は `https://channel.works/787x9/...` が正（`desk.channel.io` は使わない）。
+
 ### 🔑 desk セッション失効（401 / sessionExpiredError）に当たったら
 - desk-api が `401` / `sessionExpiredError`「認証情報が変更されたため、ログアウトしました」を返したら、それは desk セッション失効。**これは黒須さんしか復旧できない**（黒須さんの手動ログインが必要）。
 - 深追い・自力復旧はしない。代わりに、ユーザー（鳥山）に次の一文を黒須さんへ送るよう促すこと:
