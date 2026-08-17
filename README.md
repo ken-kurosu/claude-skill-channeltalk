@@ -119,6 +119,17 @@ ChannelTalk のリフレッシュトークン再利用検知が発火して **de
 セッションの生存確認は cookie の残り時間では判定できない (残 7 日でも死んでいた事例あり)。
 必ず実 API コール (`node scripts/list-workflows.js` など) で確認すること。
 
+#### Aika 側の関連対応 (このリポジトリ外・git 管理外なので消えやすい)
+
+`~/aikasa-channeltalk-impl/automation/` に 2 点入れてある。npm install や再構築で消えたら入れ直すこと。
+
+| 対象 | 内容 | 退避先 |
+|---|---|---|
+| `lib/desk_api.js` | cookie を `domain.includes('channel.io')` で探していたが、ChannelTalk が desk 認証を **`.channel.works`** へ移行したため全滅していた。`isAuthDomain()` で両対応に | `lib/desk_api.js.bak.20260816` |
+| `node_modules/playwright/index.js` | **セッション保護シム**。`storageState` をパス指定で作った context は閉じる前に必ず同じパスへ書き戻す。旧バージョンの skill を持つ端末から叩かれてもセッションを壊さないための保険 | `index.js.orig.20260817` |
+
+API ホストは `desk-api.channel.io` / `api.channel.works` のどちらでも 200 を返す (実測)。`BASE` の変更は不要。
+
 ## 連絡
 
 問題があれば黒須さん or `#aikasa-channeltalk` Slack チャンネルへ。
